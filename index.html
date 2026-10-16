@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="hi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101426"><title>Niraj AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101426;color:#f5f6ff;font-family:system-ui,sans-serif}
+header{text-align:center;padding:22px 10px;background:#191f38;border-bottom:1px solid #303958}
+.logo{font-size:38px;color:#8ca5ff}h1{margin:4px;font-size:27px}.sub{color:#aeb9d8;font-size:13px}
+main{max-width:640px;margin:auto;padding:14px}.status{color:#83e5bc;font-size:13px;margin-bottom:10px}
+#chat{height:48vh;min-height:260px;overflow-y:auto;padding:10px;background:#171d32;border-radius:16px}
+.msg{padding:11px 13px;border-radius:13px;margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.bot{background:#252e4b;margin-right:18px}.user{background:#344d83;margin-left:18px}
+.row{display:flex;gap:8px;margin-top:10px}input{flex:1;min-width:0;background:#202944;color:white;border:1px solid #445071;border-radius:12px;padding:13px;font-size:16px}
+button{border:0;border-radius:12px;padding:12px;font-size:15px;background:#6888ff;color:white}.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tools button{background:#242e4a}
+.hint{font-size:12px;color:#aeb9d8;line-height:1.6}
+</style></head><body>
+<header><div class="logo">✦</div><h1>Niraj AI</h1><div class="sub">तुम्हारा अपना Personal Assistant</div></header>
+<main><div id="status" class="status">● असिस्टेंट तैयार है</div>
+<div id="chat" aria-live="polite"><div class="msg bot">नमस्ते भाई! मैं Niraj AI हूँ। 😊
+मुझसे लिखकर बात करो या माइक दबाकर बोलो।
+
+उदाहरण: समय बताओ, YouTube खोलो, Google खोलो, Maps खोलो, 1 मिनट बाद याद दिलाना।</div></div>
+<div class="row"><input id="input" placeholder="यहाँ लिखो..." autocomplete="off"><button id="send">भेजो</button></div>
+<div class="row"><button id="mic" style="flex:1">🎙️ बोलो</button><button id="stop" style="background:#3a4056">आवाज़ बंद</button></div>
+<div class="tools"><button data-cmd="समय बताओ">🕒 समय</button><button data-cmd="YouTube खोलो">▶ YouTube</button><button data-cmd="Google खोलो">🔎 Google</button><button data-cmd="Maps खोलो">📍 Maps</button></div>
+<p class="hint">यह शुरुआती संस्करण बिना AI API के चलता है। रिमाइंडर के लिए ऐप खुला रखें। सामान्य AI बातचीत और इंटरनेट-आधारित जवाब अगले संस्करण में जोड़े जा सकते हैं।</p>
+</main>
+<script>
+const chat=document.getElementById('chat'),input=document.getElementById('input'),statusText=document.getElementById('status');
+function addMessage(text,who){const el=document.createElement('div');el.className='msg '+who;el.textContent=text;chat.appendChild(el);chat.scrollTop=chat.scrollHeight;}
+function say(text){if(window.AndroidApp){AndroidApp.speak(text);return;}if('speechSynthesis'in window){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang='hi-IN';speechSynthesis.speak(u);}}
+function reply(text,speak=true){addMessage(text,'bot');if(speak)say(text);}
+function openSite(url){if(window.AndroidApp){AndroidApp.openUrl(url);}else{window.open(url,'_blank');}reply('ठीक है भाई, खोलने की कोशिश कर रहा हूँ।',false);}
+function handleCommand(raw){let text=raw.trim(),s=text.toLowerCase();if(!text)return;addMessage(text,'user');input.value='';
+if(/(समय|टाइम|time)/i.test(s)){reply('अभी समय है '+new Date().toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}));return;}
+if(/(तारीख|date)/i.test(s)){reply('आज '+new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'})+' है।');return;}
+if(/(youtube|यूट्यूब)/i.test(s)&&/(खोल|open)/i.test(s)){openSite('https://m.youtube.com/');return;}
+if(/(google|गूगल)/i.test(s)&&/(खोल|open)/i.test(s)){openSite('https://www.google.com/');return;}
+if(/(maps|मैप|नक्शा)/i.test(s)&&/(खोल|open)/i.test(s)){openSite('https://maps.google.com/');return;}
+let r=s.match(/(\d+)\s*(सेकंड|second|seconds|मिनट|minute|minutes)\s*(बाद|में)?\s*(याद|रिमाइंडर|remind)?/i);
+if(r&&/(याद|रिमाइंडर|remind|बाद)/i.test(s)){let n=Number(r[1]),ms=n*(/(मिनट|minute)/i.test(r[2])?60000:1000);if(n<1||ms>86400000){reply('1 सेकंड से 24 घंटे के बीच का समय बताओ।');return;}let note=text.replace(r[0],'').replace(/मुझे|याद दिलाना|रिमाइंडर लगाओ|remind me/gi,'').trim()||'तुम्हारा रिमाइंडर पूरा हुआ।';setTimeout(()=>reply('⏰ याद दिलाने का समय हो गया! '+note),ms);reply(n+' '+r[2]+' बाद याद दिलाऊँगा। ऐप खुला रखना।');return;}
+if(/^(नमस्ते|हेलो|hello|hi|हाय)[!. ]*$/i.test(s)){reply('नमस्ते भाई! बताओ, क्या काम है?');return;}
+reply('इस शुरुआती वर्ज़न में यह कमांड उपलब्ध नहीं है। समय, तारीख, YouTube, Google, Maps या रिमाइंडर आज़माओ।');
+}
+document.getElementById('send').onclick=()=>handleCommand(input.value);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')handleCommand(input.value)});
+document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>handleCommand(b.dataset.cmd));
+document.getElementById('mic').onclick=()=>{if(window.AndroidApp){AndroidApp.listen();return;}reply('आवाज़ पहचान के लिए Android ऐप इस्तेमाल करो।',false);};
+window.onNativeSpeech=words=>{input.value=words;handleCommand(words);};
+document.getElementById('stop').onclick=()=>{if(window.AndroidApp)AndroidApp.speak('');if('speechSynthesis'in window)speechSynthesis.cancel();statusText.textContent='● आवाज़ बंद है';};
+</script></body></html>
